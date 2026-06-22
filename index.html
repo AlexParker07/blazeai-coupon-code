@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlazeAI Campaign Momentum Planner</title>
+  <meta name="description" content="A free interactive BlazeAI campaign planner that helps you map weekly content, track channels, and save progress in your browser." />
+  <style>
+    :root{
+      --bg:#0f172a; --card:#1e293b; --line:#334155;
+      --text:#f1f5f9; --muted:#94a3b8; --accent:#f97316; --accent-2:#16a34a;
+      --danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; font-family:Arial,Helvetica,sans-serif;
+      background:radial-gradient(1200px 600px at 50% -10%,#1b2740,transparent),var(--bg);
+      color:var(--text); display:flex; flex-direction:column; align-items:center; padding:24px;
+    }
+    h1{font-size:clamp(24px,5vw,38px); margin:32px 0 4px; text-align:center}
+    .sub{color:var(--muted); margin:0 0 28px; text-align:center; max-width:650px; line-height:1.5}
+    .wrap{width:100%; max-width:760px; display:grid; grid-template-columns:1fr 1fr; gap:18px}
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:16px;
+      padding:24px; box-shadow:0 20px 40px rgba(0,0,0,.35);
+    }
+    .wide{grid-column:1 / -1}
+    label{display:block; color:var(--muted); font-size:13px; margin:12px 0 6px}
+    input, textarea, select{
+      width:100%; border:1px solid var(--line); background:#0f1a2e; color:var(--text);
+      border-radius:10px; padding:12px; font-size:15px; outline:none;
+    }
+    textarea{min-height:96px; resize:vertical}
+    .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px}
+    .stat{background:#0f1a2e; border:1px solid var(--line); border-radius:12px; padding:14px 10px; text-align:center}
+    .stat .label{font-size:12px; color:var(--muted); margin-bottom:6px}
+    .stat .value{font-size:28px; font-weight:700}
+    button{
+      width:100%; padding:13px 18px; border:none; border-radius:10px; cursor:pointer;
+      font-size:15px; font-weight:700; color:#04140a; background:var(--accent-2);
+      transition:transform .05s ease, filter .2s ease;
+    }
+    button:hover{filter:brightness(1.06)}
+    button:active{transform:translateY(1px)}
+    .secondary{background:#0f1a2e; color:var(--text); border:1px solid var(--line); margin-top:10px}
+    .danger{background:transparent; color:var(--muted); font-weight:500; font-size:13px; margin-top:10px}
+    .danger:hover{color:#fff}
+    .channels{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0 14px}
+    .channels label{
+      margin:0; background:#0f1a2e; border:1px solid var(--line); border-radius:10px;
+      padding:10px; color:var(--text); display:flex; align-items:center; gap:8px; cursor:pointer;
+    }
+    .channels input{width:auto}
+    .list{display:grid; gap:10px; margin-top:12px}
+    .item{background:#0f1a2e; border:1px solid var(--line); border-radius:12px; padding:14px}
+    .item strong{display:block; margin-bottom:5px}
+    .item small{color:var(--muted)}
+    .pill{display:inline-block; margin:8px 6px 0 0; padding:5px 8px; border-radius:999px; background:#17233a; color:#cbd5e1; font-size:12px}
+    .cta{
+      display:block; margin:18px auto 0; max-width:760px; width:100%; text-decoration:none;
+      background:var(--accent); color:#111827; font-weight:800; text-align:center;
+      padding:15px 18px; border-radius:10px;
+    }
+    .cta:hover{filter:brightness(1.05)}
+    footer{color:var(--muted); font-size:12px; margin-top:28px; max-width:720px; text-align:center; line-height:1.5}
+    @media(max-width:720px){
+      .wrap{grid-template-columns:1fr}
+      .wide{grid-column:auto}
+      .stats{grid-template-columns:1fr}
+      .channels{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <h1>🔥 BlazeAI Campaign Momentum Planner</h1>
+  <p class="sub">Plan one weekly campaign, pick your channels, and track how many marketing assets you shipped. Your progress is saved in your browser with localStorage.</p>
+
+  <div class="wrap">
+    <div class="card wide">
+      <div class="stats">
+        <div class="stat"><div class="label">📣 Campaigns</div><div class="value" id="campaignCount">0</div></div>
+        <div class="stat"><div class="label">✅ Assets</div><div class="value" id="assetCount">0</div></div>
+        <div class="stat"><div class="label">🔥 Streak</div><div class="value" id="streakCount">0</div></div>
+      </div>
+      <button id="shipAssetBtn">Ship One Marketing Asset Today</button>
+      <button class="danger" id="resetBtn">Reset all progress</button>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">New campaign</h2>
+      <label for="campaignName">Campaign name</label>
+      <input id="campaignName" placeholder="Example: June lead-gen push" />
+
+      <label for="campaignGoal">Goal</label>
+      <select id="campaignGoal">
+        <option>Get more leads</option>
+        <option>Grow social reach</option>
+        <option>Promote an offer</option>
+        <option>Publish weekly content</option>
+        <option>Improve local reputation</option>
+      </select>
+
+      <label>Channels</label>
+      <div class="channels">
+        <label><input type="checkbox" value="Social" /> Social</label>
+        <label><input type="checkbox" value="Blog" /> Blog</label>
+        <label><input type="checkbox" value="Email" /> Email</label>
+        <label><input type="checkbox" value="Ads" /> Ads</label>
+        <label><input type="checkbox" value="Landing Page" /> Landing Page</label>
+        <label><input type="checkbox" value="Reviews" /> Reviews</label>
+      </div>
+
+      <label for="campaignNotes">Notes</label>
+      <textarea id="campaignNotes" placeholder="Audience, hook, offer, angle, or weekly content idea..."></textarea>
+
+      <button id="addCampaignBtn">Add campaign</button>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Blaze-style prompt</h2>
+      <p style="color:var(--muted);line-height:1.5;margin-top:0">Use this mini prompt to brief BlazeAI or your own marketing workflow.</p>
+      <textarea id="promptBox" readonly></textarea>
+      <button class="secondary" id="copyPromptBtn">Copy prompt</button>
+    </div>
+
+    <div class="card wide">
+      <h2 style="margin-top:0">Saved campaigns</h2>
+      <div class="list" id="campaignList"></div>
+    </div>
+  </div>
+
+  <a class="cta" href="https://tinyurl.com/3t856cwt" target="_blank" rel="noopener sponsored">
+    🎁 Try BlazeAI: 7-day free trial + up to $1,800/yr savings →
+  </a>
+
+  <footer>
+    Built for marketers exploring BlazeAI. This page contains an affiliate link — we may earn a commission at no extra cost to you. Not affiliated with or endorsed by BlazeAI.
+  </footer>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const storageKey = "blazeai_campaign_planner_v1";
+
+    const defaultState = {
+      campaigns: [],
+      assets: 0,
+      streak: 0,
+      lastAssetDate: null
+    };
+
+    function loadState(){
+      try {
+        return JSON.parse(localStorage.getItem(storageKey)) || defaultState;
+      } catch(e) {
+        return defaultState;
+      }
+    }
+
+    let state = loadState();
+
+    function saveState(){
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+
+    function daysBetween(a, b){
+      const start = new Date(a).setHours(0,0,0,0);
+      const end = new Date(b).setHours(0,0,0,0);
+      return Math.round((end - start) / 86400000);
+    }
+
+    function selectedChannels(){
+      return Array.from(document.querySelectorAll(".channels input:checked")).map(input => input.value);
+    }
+
+    function renderPrompt(){
+      const name = $("campaignName").value.trim() || "my next campaign";
+      const goal = $("campaignGoal").value;
+      const channels = selectedChannels();
+      const notes = $("campaignNotes").value.trim() || "Use my brand voice, keep it practical, and create content that can be approved quickly.";
+      $("promptBox").value =
+        "Create a weekly marketing campaign for " + name + ". " +
+        "Goal: " + goal + ". " +
+        "Channels: " + (channels.length ? channels.join(", ") : "Social, Blog, Email") + ". " +
+        "Notes: " + notes + " " +
+        "Give me a simple content calendar, hooks, captions, email angle, and one paid ad idea.";
+    }
+
+    function renderCampaigns(){
+      $("campaignCount").innerText = state.campaigns.length;
+      $("assetCount").innerText = state.assets;
+      $("streakCount").innerText = state.streak;
+
+      if (!state.campaigns.length) {
+        $("campaignList").innerHTML = '<div class="item"><strong>No campaigns yet.</strong><small>Add one campaign to start building momentum.</small></div>';
+        renderPrompt();
+        return;
+      }
+
+      $("campaignList").innerHTML = state.campaigns.map((campaign, index) => {
+        const pills = campaign.channels.map(channel => '<span class="pill">' + channel + '</span>').join("");
+        return '<div class="item">' +
+          '<strong>' + escapeHtml(campaign.name) + '</strong>' +
+          '<small>Goal: ' + escapeHtml(campaign.goal) + ' · Added ' + campaign.date + '</small>' +
+          '<div>' + pills + '</div>' +
+          '<p style="margin:10px 0 0;color:#cbd5e1">' + escapeHtml(campaign.notes || "No notes added.") + '</p>' +
+          '<button class="secondary" style="margin-top:12px" onclick="deleteCampaign(' + index + ')">Remove</button>' +
+        '</div>';
+      }).join("");
+
+      renderPrompt();
+    }
+
+    function escapeHtml(value){
+      return value.replace(/[&<>"']/g, function(char){
+        return ({
+          "&":"&amp;",
+          "<":"&lt;",
+          ">":"&gt;",
+          '"':"&quot;",
+          "'":"&#039;"
+        })[char];
+      });
+    }
+
+    function addCampaign(){
+      const name = $("campaignName").value.trim();
+      if (!name) {
+        alert("Give your campaign a name first.");
+        return;
+      }
+
+      const channels = selectedChannels();
+      state.campaigns.unshift({
+        name: name,
+        goal: $("campaignGoal").value,
+        channels: channels.length ? channels : ["Social"],
+        notes: $("campaignNotes").value.trim(),
+        date: new Date().toLocaleDateString()
+      });
+
+      $("campaignName").value = "";
+      $("campaignNotes").value = "";
+      document.querySelectorAll(".channels input").forEach(input => input.checked = false);
+
+      saveState();
+      renderCampaigns();
+    }
+
+    function shipAsset(){
+      const today = new Date().toDateString();
+
+      if (state.lastAssetDate === today) {
+        state.assets += 1;
+      } else if (!state.lastAssetDate) {
+        state.assets += 1;
+        state.streak = 1;
+        state.lastAssetDate = today;
+      } else {
+        const gap = daysBetween(state.lastAssetDate, today);
+        state.assets += 1;
+        state.streak = gap === 1 ? state.streak + 1 : 1;
+        state.lastAssetDate = today;
+      }
+
+      saveState();
+      renderCampaigns();
+    }
+
+    function deleteCampaign(index){
+      state.campaigns.splice(index, 1);
+      saveState();
+      renderCampaigns();
+    }
+
+    function resetAll(){
+      if (!confirm("Reset campaigns, assets, and streak?")) return;
+      state = { campaigns: [], assets: 0, streak: 0, lastAssetDate: null };
+      saveState();
+      renderCampaigns();
+    }
+
+    async function copyPrompt(){
+      renderPrompt();
+      try {
+        await navigator.clipboard.writeText($("promptBox").value);
+        $("copyPromptBtn").innerText = "Copied!";
+        setTimeout(() => $("copyPromptBtn").innerText = "Copy prompt", 1200);
+      } catch(e) {
+        alert("Copy failed. Select the prompt text and copy manually.");
+      }
+    }
+
+    $("addCampaignBtn").addEventListener("click", addCampaign);
+    $("shipAssetBtn").addEventListener("click", shipAsset);
+    $("resetBtn").addEventListener("click", resetAll);
+    $("copyPromptBtn").addEventListener("click", copyPrompt);
+    ["campaignName","campaignGoal","campaignNotes"].forEach(id => $(id).addEventListener("input", renderPrompt));
+    document.querySelectorAll(".channels input").forEach(input => input.addEventListener("change", renderPrompt));
+
+    renderCampaigns();
+  </script>
+</body>
+</html>
